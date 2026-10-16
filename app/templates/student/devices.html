@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Device Catalog{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-5">
+  <h1 class="text-2xl font-bold text-slate-900">Device Catalog</h1>
+  <form method="get" class="flex gap-2">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search devices..."
+           class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    <button class="bg-indigo-600 text-white px-4 rounded-lg text-sm">Search</button>
+  </form>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-6">
+  <a href="{{ url_for('student.devices') }}"
+     class="px-3 py-1.5 rounded-full text-sm {{ 'bg-indigo-600 text-white' if not active_cat else 'bg-white border border-slate-200' }}">All</a>
+  {% for c in categories %}
+  <a href="{{ url_for('student.devices', category=c.id) }}"
+     class="px-3 py-1.5 rounded-full text-sm {{ 'bg-indigo-600 text-white' if active_cat==c.id else 'bg-white border border-slate-200' }}">{{ c.name }}</a>
+  {% endfor %}
+</div>
+
+{% if devices %}
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for d in devices %}
+    {% include 'student/_device_card.html' %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-slate-200 p-10 text-center text-slate-500">
+  No devices match your search.
+</div>
+{% endif %}
+{% endblock %}

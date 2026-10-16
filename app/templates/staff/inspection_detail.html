@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Inspection Detail{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold text-slate-900 mb-1">Inspection Report:</h1>
+  <p class="text-sm text-slate-500 mb-5">{{ device.name if device else 'Device' }} · Rental {{ rental.rental_code if rental else inspection.rental_id }}</p>
+
+  <div class="bg-white rounded-2xl border border-slate-200 p-6">
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div class="bg-slate-50 rounded-xl p-4">
+        <div class="text-xs text-slate-400 mb-1">Damage Severity</div>
+        <div class="text-3xl font-bold {{ 'text-rose-600' if inspection.ai_damage_detected else 'text-emerald-600' }}">{{ '%.1f'|format(inspection.damage_score or 0) }}%</div>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-4">
+        <div class="text-xs text-slate-400 mb-1">Fine Imposed</div>
+        <div class="text-3xl font-bold text-slate-800">{{ CURRENCY }}{{ '%.0f'|format(inspection.fine_imposed or 0) }}</div>
+      </div>
+    </div>
+    <div class="text-sm font-semibold text-slate-700 mb-1">AI Classification</div>
+    <p class="text-sm text-slate-600 mb-2">{{ inspection.damage_description }}</p>
+    <p class="text-sm text-slate-500 mb-2">{{ inspection.ai_analysis_summary }}</p>
+    {% if inspection.staff_notes %}<p class="text-sm text-slate-600"><strong>Staff notes:</strong> {{ inspection.staff_notes }}</p>{% endif %}
+    {% if inspection.diff_image_path %}
+    <img src="{{ inspection.diff_image_path }}" class="w-full rounded-xl border border-slate-200 mt-4" onerror="this.style.display='none'">
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

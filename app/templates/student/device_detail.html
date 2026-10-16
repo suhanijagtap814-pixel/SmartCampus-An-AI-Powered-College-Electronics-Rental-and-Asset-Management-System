@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ device.name }}{% endblock %}
+{% block content %}
+<div class="grid md:grid-cols-2 gap-8">
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <img src="{{ device.image_url or '/static/uploads/devices/default.jpg' }}" alt="{{ device.name }}"
+         class="w-full h-72 object-cover" onerror="this.src='/static/uploads/devices/default.jpg'">
+    {% if device.qr_code_path %}
+    <div class="p-4 flex items-center gap-3 border-t border-slate-100">
+      <img src="{{ device.qr_code_path }}" class="w-20 h-20" alt="QR badge">
+      <div class="text-xs text-slate-500">Scan this QR at the Tech Desk for instant check-out / return tracking.</div>
+    </div>
+    {% endif %}
+  </div>
+  <div>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-xs font-medium text-slate-400">{{ device.device_code }}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full {{ 'bg-emerald-100 text-emerald-700' if device.status=='available' else 'bg-rose-100 text-rose-700' }}">{{ device.status|capitalize }}</span>
+    </div>
+    <h1 class="text-2xl font-bold text-slate-900 mb-1">{{ device.name }}</h1>
+    <p class="text-slate-500 mb-4">{{ device.brand }} {{ device.model }} · {{ device.location }}</p>
+
+    <div class="flex items-end gap-6 mb-5">
+      <div><div class="text-3xl font-bold text-indigo-700">{{ CURRENCY }}{{ '%.0f'|format(device.price_per_day) }}</div><div class="text-xs text-slate-400">per day</div></div>
+      <div><div class="text-xl font-semibold text-slate-700">{{ CURRENCY }}{{ '%.0f'|format(device.deposit_amount or 0) }}</div><div class="text-xs text-slate-400">refundable deposit</div></div>
+    </div>
+
+    {% if device.specs %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4 mb-5">
+      <h3 class="font-semibold text-slate-800 mb-2">Specifications</h3>
+      <dl class="grid grid-cols-2 gap-2 text-sm">
+        {% for k, v in device.specs.items() %}
+        <div><dt class="text-slate-400 text-xs">{{ k }}</dt><dd class="text-slate-700">{{ v }}</dd></div>
+        {% endfor %}
+      </dl>
+    </div>
+    {% endif %}
+
+    {% if device.status == 'available' %}
+      <a href="{{ url_for('student.book', device_id=device.id) }}"
+         class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg">Reserve This Device</a>
+    {% else %}
+      <button disabled class="bg-slate-200 text-slate-500 font-semibold px-6 py-3 rounded-lg cursor-not-allowed">Currently Unavailable</button>
+    {% endif %}
+  </div>
+</div>
+
+{% if related %}
+<h2 class="text-lg font-bold text-slate-900 mt-10 mb-4">Related Gear</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  {% for d in related %}{% include 'student/_device_card.html' %}{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

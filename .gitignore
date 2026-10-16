@@ -9,9 +9,18 @@ venv/
 .venv/
 ENV/
 
+# Secrets / environment (never commit real credentials)
+.env
+.env.*
+!.env.example
+
 # Flask & DB instance
+instance/
 instance/*.db-journal
 instance/*.db-wal
+
+# Generated media (QR badges, placeholder images)
+app/static/uploads/qrcodes/
 
 # Distribution / packaging
 build/

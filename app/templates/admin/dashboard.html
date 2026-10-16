@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-slate-900 mb-5">Admin Dashboard</h1>
+
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-indigo-700">{{ stats.devices }}</div><div class="text-sm text-slate-500">Total Devices</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-amber-600">{{ stats.rented }}</div><div class="text-sm text-slate-500">Currently Rented</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-slate-800">{{ stats.students }}</div><div class="text-sm text-slate-500">Students</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-rose-600">{{ stats.pending_approvals }}</div><div class="text-sm text-slate-500">Pending Approvals</div></div>
+</section>
+
+<div class="grid lg:grid-cols-3 gap-4 mb-8">
+  <div class="bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-2xl p-5">
+    <div class="text-sm text-indigo-100">Total Booking Revenue</div>
+    <div class="text-3xl font-bold mt-1">{{ CURRENCY }}{{ '%.0f'|format(stats.revenue) }}</div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-200 p-5">
+    <div class="text-sm text-slate-500">Pending Fines</div>
+    <div class="text-3xl font-bold text-rose-600 mt-1">{{ CURRENCY }}{{ '%.0f'|format(stats.pending_fines) }}</div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col gap-2">
+    <a href="{{ url_for('admin.approvals') }}" class="text-sm bg-indigo-600 text-white px-3 py-2 rounded-lg text-center">Review Approvals</a>
+    <a href="{{ url_for('admin.ai_predictions') }}" class="text-sm bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-center">AI Demand Forecast</a>
+    <a href="{{ url_for('admin.students') }}" class="text-sm bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-center">Student Risk Radar</a>
+  </div>
+</div>
+
+<h2 class="text-lg font-bold text-slate-900 mb-3">Recent Bookings</h2>
+<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-slate-500 text-left">
+      <tr><th class="px-4 py-3">Code</th><th class="px-4 py-3">Device</th><th class="px-4 py-3">Student</th><th class="px-4 py-3">Status</th></tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for b in recent_bookings %}
+      <tr>
+        <td class="px-4 py-3 font-medium">{{ b.booking_code }}</td>
+        <td class="px-4 py-3">
+          <a href="{{ url_for('admin.approvals') }}#booking-{{ b.id }}" class="text-indigo-600 hover:underline">{{ b.device.name if b.device else '-' }}</a>
+        </td>
+        <td class="px-4 py-3 text-slate-500">{{ b.user.name if b.user else '-' }}</td>
+        <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{{ b.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

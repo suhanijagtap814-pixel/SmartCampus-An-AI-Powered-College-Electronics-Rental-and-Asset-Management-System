@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Staff Desk Dashboard{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-slate-900 mb-5">Staff &amp; Lab Tech Desk</h1>
+
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-indigo-700">{{ stats.to_issue }}</div><div class="text-sm text-slate-500">Ready to Issue</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-emerald-600">{{ stats.active }}</div><div class="text-sm text-slate-500">Active Rentals</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-amber-600">{{ stats.awaiting_return }}</div><div class="text-sm text-slate-500">Awaiting Return</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-3xl font-bold text-slate-800">{{ stats.devices }}</div><div class="text-sm text-slate-500">Total Devices</div></div>
+</section>
+
+<div class="flex flex-wrap gap-3 mb-8">
+  <a href="{{ url_for('staff.scanner') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">Open QR Scanner</a>
+  <a href="{{ url_for('staff.inspection') }}" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm">Inspection Reports</a>
+</div>
+
+<h2 class="text-lg font-bold text-slate-900 mb-3">Approved Bookings &mdash; Issue Gear</h2>
+{% if pending_issue %}
+<div class="space-y-3">
+  {% for b in pending_issue %}
+  <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
+    <div>
+      <div class="font-semibold text-slate-800">{{ b.device.name if b.device else 'Device' }}</div>
+      <div class="text-xs text-slate-500">{{ b.booking_code }} · {{ b.user.name }} · {{ b.start_date }} → {{ b.end_date }}</div>
+    </div>
+    <form method="POST" action="{{ url_for('staff.issue_device', booking_id=b.id) }}">
+      <button class="text-sm bg-emerald-600 text-white px-3 py-1.5 rounded-lg">Issue Device</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-slate-500 text-sm">No approved bookings waiting to be issued.</p>
+{% endif %}
+{% endblock %}

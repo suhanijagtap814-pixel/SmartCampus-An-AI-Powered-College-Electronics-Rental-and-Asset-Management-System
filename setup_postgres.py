@@ -75,9 +75,10 @@ def setup_postgresql():
         conn = psycopg2.connect(
             dbname='postgres',
             user=user,
-            password=1234,
+            password=password,
             host=host,
-            port=int(port)
+            port=int(port),
+            sslmode='require' if host not in ('localhost', '127.0.0.1') else 'prefer'
         )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()

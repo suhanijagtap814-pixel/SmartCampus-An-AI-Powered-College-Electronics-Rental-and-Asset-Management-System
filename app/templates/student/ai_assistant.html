@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}AI Rental Assistant{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white p-6 mb-6">
+    <h1 class="text-2xl font-bold mb-1">AI Smart Rental Assistant</h1>
+    <p class="text-indigo-100 text-sm">Describe what you need &mdash; the recommender ranks the best gear for you.</p>
+    <form method="get" class="mt-4 flex gap-2">
+      <input type="text" name="query" value="{{ query }}"
+             placeholder="e.g. a laptop for python and machine learning"
+             class="flex-1 rounded-lg px-4 py-2.5 text-slate-800">
+      <button class="bg-white text-indigo-700 font-semibold px-5 rounded-lg">Recommend</button>
+    </form>
+  </div>
+
+  {% if query %}
+    <h2 class="text-lg font-bold text-slate-900 mb-4">Top matches for &ldquo;{{ query }}&rdquo;</h2>
+    {% if results %}
+    <div class="space-y-3">
+      {% for r in results %}
+      <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+        <img src="{{ r.device.image_url or '/static/uploads/devices/default.jpg' }}"
+             class="w-20 h-20 rounded-lg object-cover" onerror="this.src='/static/uploads/devices/default.jpg'">
+        <div class="flex-1">
+          <div class="flex items-center gap-2">
+            <h3 class="font-semibold text-slate-900">{{ r.device.name }}</h3>
+            <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">{{ r.match }}% Match</span>
+          </div>
+          <p class="text-xs text-slate-500">{{ r.reason }}</p>
+          <p class="text-sm text-indigo-700 font-semibold mt-1">{{ CURRENCY }}{{ '%.0f'|format(r.device.price_per_day) }}/day</p>
+        </div>
+        <a href="{{ url_for('student.device_detail', device_id=r.device.id) }}"
+           class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg">View</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-500">No strong matches found. Try different keywords.</p>
+    {% endif %}
+  {% endif %}
+
+  <!-- Live chatbot -->
+  <div class="mt-8 bg-white rounded-2xl border border-slate-200 p-4">
+    <h3 class="font-semibold text-slate-800 mb-3">Chat with the Assistant</h3>
+    <div id="chatWindow" class="no-scrollbar h-64 overflow-y-auto space-y-2 mb-3 p-2 bg-slate-50 rounded-lg"
+         style="scrollbar-width: none;">
+      <div class="text-sm text-slate-500">Ask me things like &ldquo;which cameras are available?&rdquo;</div>
+    </div>
+    <form id="chatForm" class="flex gap-2">
+      <input id="chatInput" type="text" placeholder="Type your question..."
+             class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      <button class="bg-indigo-600 text-white px-4 rounded-lg text-sm">Send</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const chatForm = document.getElementById('chatForm');
+  const chatWindow = document.getElementById('chatWindow');
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    appendBubble(msg, 'user');
+    input.value = '';
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: msg})
+      });
+      const data = await res.json();
+      appendBubble(data.response, 'bot');
+      (data.device_cards || []).forEach(c => appendCard(c));
+    } catch (err) { appendBubble('Sorry, something went wrong.', 'bot'); }
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  });
+  function appendBubble(text, who) {
+    const d = document.createElement('div');
+    d.className = 'text-sm px-3 py-2 rounded-lg ' +
+      (who === 'user' ? 'bg-indigo-600 text-white ml-auto w-fit' : 'bg-white border border-slate-200 w-fit');
+    d.textContent = text;
+    chatWindow.appendChild(d);
+  }
+  function appendCard(c) {
+    const a = document.createElement('a');
+    a.href = c.url;
+    a.className = 'flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-2 text-sm';
+    a.innerHTML = '<img src="' + c.image_url + '" class="w-10 h-10 rounded object-cover"><span>' +
+      c.name + ' · ₹' + c.price_per_day + '/day · ' + c.match + '% Match</span>';
+    chatWindow.appendChild(a);
+  }
+</script>
+{% endblock %}

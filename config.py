@@ -2,6 +2,29 @@ import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# Load variables from the project's .env file into os.environ BEFORE any
+# config value is read. Without this, DATABASE_URL / POSTGRES_* / Supabase
+# credentials placed in .env are ignored and the hardcoded defaults are used.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(BASE_DIR, '.env'))
+except ImportError:
+    # python-dotenv not installed yet; env vars must be set in the shell.
+    pass
+
+
+def _ensure_sslmode(db_url):
+    """Supabase (and most managed Postgres) require SSL. Append
+    sslmode=require for remote hosts when the caller did not specify one."""
+    lowered = db_url.lower()
+    if 'sslmode=' in lowered:
+        return db_url
+    # Only force SSL for remote databases, never for a local dev server.
+    if 'localhost' in lowered or '127.0.0.1' in lowered:
+        return db_url
+    separator = '&' if '?' in db_url else '?'
+    return f"{db_url}{separator}sslmode=require"
+
 def get_database_uri():
     """
     Constructs and normalizes PostgreSQL database connectivity URI.
@@ -21,7 +44,7 @@ def get_database_uri():
             db_url = db_url.replace('postgres://', 'postgresql+psycopg2://', 1)
         elif db_url.startswith('postgresql://') and '+psycopg2' not in db_url and '+pg8000' not in db_url:
             db_url = db_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
-        return db_url
+        return _ensure_sslmode(db_url)
 
     pg_user = os.environ.get('POSTGRES_USER', 'postgres')
     pg_password = os.environ.get('POSTGRES_PASSWORD', 'postgres')
@@ -29,7 +52,9 @@ def get_database_uri():
     pg_port = os.environ.get('POSTGRES_PORT', '5432')
     pg_db = os.environ.get('POSTGRES_DB', 'campus_rental')
 
-    return f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
+    return _ensure_sslmode(
+        f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
+    )
 
 
 class Config:

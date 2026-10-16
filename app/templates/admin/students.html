@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Student Risk Radar{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-slate-900 mb-1">Student Risk Radar</h1>
+<p class="text-sm text-slate-500 mb-5">AI trust &amp; risk profiling based on overdue returns, damage history, and unpaid fines.</p>
+
+<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-slate-500 text-left">
+      <tr>
+        <th class="px-4 py-3">Student</th><th class="px-4 py-3">Risk</th>
+        <th class="px-4 py-3">Rentals</th><th class="px-4 py-3">Overdue</th>
+        <th class="px-4 py-3">Damage</th><th class="px-4 py-3">Unpaid Fines</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for p in profiles %}
+      <tr>
+        <td class="px-4 py-3">
+          <div class="font-medium text-slate-800">{{ p.user.name }}</div>
+          <div class="text-xs text-slate-400">{{ p.user.student_id }} · {{ p.user.department }}</div>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-xs px-2 py-1 rounded-full font-semibold
+            {{ 'bg-rose-100 text-rose-700' if p.band=='high' else ('bg-amber-100 text-amber-700' if p.band=='medium' else 'bg-emerald-100 text-emerald-700') }}">
+            {{ p.band|capitalize }} · {{ p.risk_score }}
+          </span>
+        </td>
+        <td class="px-4 py-3">{{ p.total_rentals }}</td>
+        <td class="px-4 py-3">{{ p.overdue }}</td>
+        <td class="px-4 py-3">{{ p.damage_events }}</td>
+        <td class="px-4 py-3">{{ CURRENCY }}{{ '%.0f'|format(p.unpaid_fine_amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

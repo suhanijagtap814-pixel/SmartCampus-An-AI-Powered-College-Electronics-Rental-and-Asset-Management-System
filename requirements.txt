@@ -24,5 +24,8 @@ colorama==0.4.6
 psycopg2-binary==2.9.13
 pg8000==1.31.5
 
+# Loads the .env file so DATABASE_URL / Supabase credentials are actually read
+python-dotenv==1.0.1
+
 # Real Razorpay Payment Gateway SDK
 razorpay==2.0.1

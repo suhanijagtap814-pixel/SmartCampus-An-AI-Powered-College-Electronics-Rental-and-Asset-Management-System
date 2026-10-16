@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Smart Campus Rental{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  <style>
+    /* Hide scrollbars where we want a clean chat/scroll surface */
+    .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    body { background: #f1f5f9; color: #0f172a; }
+    .glass { background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- ===================== Top Navigation ===================== -->
+  <nav class="glass sticky top-0 z-40 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="globalBackButton" onclick="goBack()" type="button"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium"
+                title="Back to Previous Screen" aria-label="Back to Previous Screen">
+          &larr; Back
+        </button>
+        <a href="{{ url_for('student.index') }}" class="flex items-center gap-2 font-bold text-indigo-700">
+          <span class="text-xl">🎓</span><span>Smart Campus Rental</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <a href="{{ url_for('student.devices') }}" class="hover:text-indigo-600">Catalog</a>
+        <a href="{{ url_for('student.ai_assistant') }}" class="hover:text-indigo-600">AI Assistant</a>
+        {% if current_user.is_authenticated %}
+          {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin.dashboard') }}" class="hover:text-indigo-600">Admin</a>
+          {% elif current_user.role == 'staff' %}
+            <a href="{{ url_for('staff.dashboard') }}" class="hover:text-indigo-600">Staff Desk</a>
+          {% else %}
+            <a href="{{ url_for('student.dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+            <a href="{{ url_for('student.notifications') }}" class="relative hover:text-indigo-600">
+              🔔{% if unread_notifications %}<span class="absolute -top-2 -right-3 bg-rose-500 text-white rounded-full text-xs px-1.5">{{ unread_notifications }}</span>{% endif %}
+            </a>
+          {% endif %}
+          <span class="text-slate-500 hidden sm:inline">{{ current_user.name }}</span>
+          <a href="{{ url_for('auth.logout') }}" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white">Logout</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="hover:text-indigo-600">Login</a>
+          <a href="{{ url_for('auth.register') }}" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===================== Flash Messages ===================== -->
+  <div class="max-w-7xl mx-auto w-full px-4 mt-4" id="flashArea">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        {% set color = {'success':'bg-emerald-50 text-emerald-800 border-emerald-200',
+                        'danger':'bg-rose-50 text-rose-800 border-rose-200',
+                        'warning':'bg-amber-50 text-amber-800 border-amber-200',
+                        'info':'bg-sky-50 text-sky-800 border-sky-200'}.get(category, 'bg-slate-50 text-slate-800 border-slate-200') %}
+        <div class="border {{ color }} rounded-lg px-4 py-2 mb-2 text-sm">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+
+  <!-- ===================== Page Content ===================== -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="glass border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    Smart Campus Electronics Rental &amp; Asset Management · AI-Powered Platform
+  </footer>
+
+  <script>
+    // Universal in-app back navigation used by #globalBackButton.
+    function goBack() {
+      if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+        history.back();
+      } else if (history.length > 1) {
+        history.back();
+      } else {
+        window.location.href = "{{ url_for('student.index') }}";
+      }
+    }
+  </script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

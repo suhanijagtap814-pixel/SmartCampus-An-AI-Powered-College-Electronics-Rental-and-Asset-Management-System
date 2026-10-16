@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Inspection Reports{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-slate-900 mb-5">AI Return Inspection Reports</h1>
+{% if inspections %}
+<div class="space-y-3">
+  {% for insp in inspections %}
+  <a href="{{ url_for('staff.inspection_detail', inspection_id=insp.id) }}"
+     class="block bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="font-semibold text-slate-800">Rental #{{ insp.rental_id }}</div>
+        <div class="text-xs text-slate-500">{{ insp.ai_analysis_summary }}</div>
+      </div>
+      <span class="text-xs px-2 py-0.5 rounded-full font-semibold {{ 'bg-rose-100 text-rose-700' if insp.ai_damage_detected else 'bg-emerald-100 text-emerald-700' }}">
+        {{ '%.1f'|format(insp.damage_score or 0) }}%
+      </span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-slate-200 p-10 text-center text-slate-500">No inspection reports yet.</div>
+{% endif %}
+{% endblock %}

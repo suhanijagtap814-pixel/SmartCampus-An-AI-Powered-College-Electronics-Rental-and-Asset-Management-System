@@ -1,0 +1,22 @@
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition">
+  <div class="h-40 bg-slate-100 overflow-hidden">
+    <img src="{{ d.image_url or '/static/uploads/devices/default.jpg' }}" alt="{{ d.name }}"
+         class="w-full h-full object-cover" onerror="this.src='/static/uploads/devices/default.jpg'">
+  </div>
+  <div class="p-4">
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-xs font-medium text-slate-400">{{ d.device_code }}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full {{ 'bg-emerald-100 text-emerald-700' if d.status=='available' else 'bg-rose-100 text-rose-700' }}">{{ d.status|capitalize }}</span>
+    </div>
+    <h3 class="font-semibold text-slate-900 leading-tight mb-1">{{ d.name }}</h3>
+    <p class="text-xs text-slate-500 mb-3">{{ d.brand }} · {{ d.location }}</p>
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="text-indigo-700 font-bold">{{ CURRENCY }}{{ '%.0f'|format(d.price_per_day) }}<span class="text-xs text-slate-400 font-normal">/day</span></div>
+        <div class="text-[11px] text-slate-400">Deposit {{ CURRENCY }}{{ '%.0f'|format(d.deposit_amount or 0) }}</div>
+      </div>
+      <a href="{{ url_for('student.device_detail', device_id=d.id) }}"
+         class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg">View</a>
+    </div>
+  </div>
+</div>
