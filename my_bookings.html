@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}My Reservations • Smart Campus Electronics Rental{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-black text-slate-900">Your Equipment Reservations</h1>
+      <p class="text-xs text-slate-500">Track approvals, payment confirmation passes, and rental milestones</p>
+    </div>
+    <a href="{{ url_for('student.devices') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center">
+      <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i> New Reservation
+    </a>
+  </div>
+
+  {% if bookings %}
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div class="divide-y divide-slate-100">
+      {% for b in bookings %}
+      <div class="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-slate-50/50 transition">
+        
+        <div class="flex items-start space-x-4">
+          <img src="{{ b.device.image_url }}" alt="{{ b.device.name }}" class="w-20 h-16 object-cover rounded-xl border border-slate-200 shadow-sm shrink-0">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 text-[10px] font-bold font-mono uppercase bg-slate-100 text-slate-700 rounded">{{ b.booking_code }}</span>
+              <span class="text-xs font-mono text-slate-400">• {{ b.device.device_code }}</span>
+              
+              <!-- Status Pill -->
+              {% if b.status == 'approved' %}
+                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                  Approved • Ready for Payment
+                </span>
+              {% elif b.status == 'pending_approval' %}
+                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">
+                  Under Admin Review
+                </span>
+              {% elif b.status == 'active' %}
+                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800">
+                  Active Loan
+                </span>
+              {% elif b.status == 'completed' %}
+                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-700">
+                  Completed & Returned
+                </span>
+              {% elif b.status == 'rejected' %}
+                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-red-100 text-red-800">
+                  Declined
+                </span>
+              {% else %}
+                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600">
+                  {{ b.status | title }}
+                </span>
+              {% endif %}
+            </div>
+
+            <h3 class="text-base font-bold text-slate-900 mt-1">{{ b.device.name }}</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Dates: <strong class="text-slate-800">{{ b.start_date.strftime('%d %b %Y') }}</strong> to <strong class="text-slate-800">{{ b.end_date.strftime('%d %b %Y') }}</strong> ({{ b.total_days }} days)
+            </p>
+            <p class="text-xs text-slate-600 italic mt-1">"{{ b.purpose }}"</p>
+
+            {% if b.admin_notes %}
+            <div class="mt-2 text-xs text-slate-500 bg-slate-100 p-2 rounded-lg">
+              <strong>Admin Note:</strong> {{ b.admin_notes }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between lg:justify-end space-x-4 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
+          <div class="text-left lg:text-right">
+            <div class="text-lg font-black text-slate-900">{{ currency }}{{ b.total_amount | int }}</div>
+            <div class="text-[11px] text-slate-400">Total Rental Fee</div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            {% if b.status == 'approved' %}
+              <a href="{{ url_for('student.payment', booking_id=b.id) }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-500/20 transition flex items-center">
+                <i data-lucide="credit-card" class="w-3.5 h-3.5 mr-1.5"></i> Pay & Checkout Pass
+              </a>
+            {% elif b.status == 'pending_approval' %}
+              <form method="POST" action="{{ url_for('student.cancel_booking', booking_id=b.id) }}" onsubmit="return confirm('Cancel this reservation?');">
+                <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-600 rounded-xl text-xs font-semibold transition">
+                  Cancel
+                </button>
+              </form>
+            {% elif b.status == 'active' and b.rental %}
+              <a href="{{ url_for('student.return_device', rental_id=b.rental.id) }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center">
+                <i data-lucide="camera" class="w-3.5 h-3.5 mr-1.5"></i> Return (AI Scan)
+              </a>
+            {% endif %}
+
+            <button onclick="showQrModal('{{ b.device.device_code }}', '{{ b.device.qr_code_path }}', '{{ b.device.name }}', '{{ b.device.serial_number }}')" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs transition" title="Show Device QR">
+              <i data-lucide="qr-code" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8">
+    <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+      <i data-lucide="calendar" class="w-8 h-8"></i>
+    </div>
+    <h3 class="text-base font-bold text-slate-800">No Reservations Yet</h3>
+    <p class="text-xs text-slate-500 mt-1">Explore our catalog or consult the AI assistant to reserve hardware.</p>
+    <a href="{{ url_for('student.devices') }}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow">Browse Available Equipment</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
